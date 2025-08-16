@@ -5,7 +5,7 @@ $conn = get_db_connection();
 // Fetch servers and their latest metrics in one go
 $servers_query = "
     SELECT
-        s.id, s.name, s.last_updated,
+        s.id, s.name, s.last_updated, s.ssl_verify,
         sm.load_avg, sm.disk_usage, sm.whm_version, sm.backup_status
     FROM servers s
     LEFT JOIN (
@@ -23,6 +23,7 @@ $servers = $conn->query($servers_query);
     <meta charset="UTF-8">
     <title>WHM Monitoring Dashboard</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         .whm-version-bubble {
             display: inline-block;
@@ -40,6 +41,10 @@ $servers = $conn->query($servers_query);
         .last-updated {
             font-size: 0.8em;
             color: #6c757d;
+        }
+        .ssl-warning {
+            color: #6c757d;
+            margin-left: 8px;
         }
     </style>
 </head>
@@ -67,6 +72,9 @@ $servers = $conn->query($servers_query);
                         <tr>
                             <td>
                                 <?php echo htmlspecialchars($server['name']); ?>
+                                <?php if (!$server['ssl_verify']): ?>
+                                    <span class="ssl-warning" title="SSL verification is disabled for this server."><i class="fas fa-unlock-alt"></i></span>
+                                <?php endif; ?>
                                 <div class='last-updated'>Last Updated: <?php echo $server['last_updated'] ? date('Y-m-d H:i:s', strtotime($server['last_updated'])) : 'Never'; ?></div>
                             </td>
                             <td><?php echo htmlspecialchars($server['load_avg']); ?></td>
@@ -74,11 +82,13 @@ $servers = $conn->query($servers_query);
                                 <?php
                                 if ($server['disk_usage']) {
                                     $partitions = json_decode($server['disk_usage'], true);
-                                    foreach ($partitions as $partition) {
-                                        echo htmlspecialchars($partition['mount']) . ": " .
-                                             htmlspecialchars($partition['used']) . " / " .
-                                             htmlspecialchars($partition['total']) . " (" .
-                                             htmlspecialchars($partition['percentage']) . "%)<br>";
+                                    if (is_array($partitions)) {
+                                        foreach ($partitions as $partition) {
+                                            echo htmlspecialchars($partition['mount']) . ": " .
+                                                 htmlspecialchars($partition['used']) . " / " .
+                                                 htmlspecialchars($partition['total']) . " (" .
+                                                 htmlspecialchars($partition['percentage']) . "%)<br>";
+                                        }
                                     }
                                 } else {
                                     echo "No data.";
@@ -105,7 +115,7 @@ $servers = $conn->query($servers_query);
                                 <?php
                                 if ($server['backup_status']) {
                                     $backup_config = json_decode($server['backup_status'], true);
-                                    echo $backup_config['backup_enabled'] ? 'Enabled' : 'Disabled';
+                                    echo isset($backup_config['backup_enabled']) && $backup_config['backup_enabled'] ? 'Enabled' : 'Disabled';
                                 } else {
                                     echo "No data.";
                                 }

@@ -9,7 +9,7 @@ $servers = $conn->query("SELECT * FROM servers WHERE is_active = 1");
 if ($servers->num_rows > 0) {
     while($server = $servers->fetch_assoc()) {
         echo "Fetching data for server: {$server['name']}...\n";
-        $api = new WhmApi($server['host'], $server['username'], $server['api_token']);
+        $api = new WhmApi($server['host'], $server['username'], $server['api_token'], $server['ssl_verify']);
         $has_errors = false;
 
         // Fetch metrics

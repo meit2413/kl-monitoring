@@ -4,6 +4,7 @@ CREATE TABLE `servers` (
   `host` varchar(255) NOT NULL,
   `username` varchar(255) NOT NULL,
   `api_token` text NOT NULL,
+  `ssl_verify` tinyint(1) NOT NULL DEFAULT '1',
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `last_updated` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)

@@ -26,6 +26,11 @@
                 <textarea class="form-control" id="api_token" name="api_token" rows="5" placeholder="Your WHM API token" required></textarea>
                 <small class="form-text text-muted">You can generate an API token in WHM under "Development" -> "Manage API Tokens".</small>
             </div>
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="ssl_verify" name="ssl_verify" value="1" checked>
+                <label class="form-check-label" for="ssl_verify">Verify SSL Certificate</label>
+                <small class="form-text text-muted">Uncheck this only if you are using a self-signed certificate or have other SSL-related connection issues with a server.</small>
+            </div>
             <button type="submit" class="btn btn-primary">Add Server</button>
             <a href="index.php" class="btn btn-secondary">Cancel</a>
         </form>
