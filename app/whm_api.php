@@ -3,13 +3,16 @@
 class WhmApi {
     private $host;
     private $username;
-    private $api_token;
+    private
+     $api_token;
     private $curl;
+    private $ssl_verify;
 
-    public function __construct($host, $username, $api_token) {
+    public function __construct($host, $username, $api_token, $ssl_verify = true) {
         $this->host = $host;
         $this->username = $username;
         $this->api_token = $api_token;
+        $this->ssl_verify = (bool) $ssl_verify;
     }
 
     private function call($function, $params = []) {
@@ -20,9 +23,16 @@ class WhmApi {
         $this->curl = curl_init();
         curl_setopt($this->curl, CURLOPT_URL, $url);
         curl_setopt($this->curl, CURLOPT_RETURNTRANSFER, true);
-        // SSL verification is enabled by default.
-        // In a production environment, ensure the server running this script trusts the WHM server's SSL certificate.
-        // You may need to add the CA to your server's trusted store.
+
+        if ($this->ssl_verify) {
+            curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, 2);
+        } else {
+            // This is insecure and should only be used for servers with known SSL certificate issues.
+            curl_setopt($this->curl, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($this->curl, CURLOPT_SSL_VERIFYHOST, false);
+        }
+
         curl_setopt($this->curl, CURLOPT_HTTPHEADER, [
             "Authorization: whm {$this->username}:{$this->api_token}"
         ]);
@@ -33,7 +43,6 @@ class WhmApi {
             // Handle curl error
             $error_msg = curl_error($this->curl);
             curl_close($this->curl);
-            // In a real app, you'd want to log this error
             return ['error' => "cURL Error: " . $error_msg];
         }
 
